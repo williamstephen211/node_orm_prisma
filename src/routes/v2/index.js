@@ -1,8 +1,10 @@
-import { Router } from 'express'
+import * as app from 'express'
 
-import studentRouter from './student'
-import booksRouter from './books'
-import examRouter from './exam'
+import studentRouter from './student.js'
+import booksRouter from './books.js'
+import examRouter from './exam.js'
+
+const { Router } = app
 
 const router = Router()
 

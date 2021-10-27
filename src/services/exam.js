@@ -1,10 +1,4 @@
 
-
-// import models
-import { Json } from 'sequelize/types/lib/utils'
-import { Exam } from '../models'
-
-
 // singleton instance
 let instance = null
 
@@ -19,41 +13,43 @@ class ExamService {
     // exam create
     async create(info,prisma) {
 
-        return await prisma.exam.create({data:info}) // info - {sId, bId}
+        return await prisma.exams.create({data:info}) // info - {sId, bId}
      }
 
     // student findlist
-    async findList({orderBy = 'desc',isDeleted = false,studentId,bookId},prisma) { // sId, bId
+    async findList({orderBy = 'desc',studentId,bookId},prisma) { // sId, bId
+        
         // query options 
+        
         let options  = {
-            order: [['id',orderBy]],
+            orderBy: {'id': orderBy},
             where:{
-                isDeleted:isDeleted === 'all' ? undefined : isDeleted,
-                sId: studentId,bId: bookId
+                
+                sId: studentId ? parseInt(studentId) : undefined,
+                bId: bookId ? parseInt(bookId) : undefined
             }
         }
-
+        console.log(studentId,bookId)
         // delete undefined property
-        options.where = JSON.parse(JSON.stringify(options))
-        
-        return await prisma.exam.findAndCountAll(options)
+        options.where = JSON.parse(JSON.stringify(options.where))
+        return await prisma.exams.findMany(options)
     }
 
     async findById(id) {
-		return await Exam.findUnique({where:{id}})
+		return await prisma.exam.findUnique({where:{id:parseInt(id)}})
 	}
 
     async updateById(id, uInfo,prisma) {
         
 		const {studentId, bookId} = uInfo
-        const info = {sId: studentId ? studentId : undefined, bId: bookId ? bookId : undefined}
+        const info = {sId: studentId ? parseInt(studentId) : undefined, bId: bookId ? parseInt(bookId) : undefined}
 
         // removing undefine
-        const realInfo = JSON.parse(JSON.stringify(info))
+        const data = JSON.parse(JSON.stringify(info))
 
 		// update user
-		const updateExam = await prisma.books.update( {
-			where: { id, isDeleted: false },data:realInfo,
+		const updateExam = await prisma.exams.update( {
+			where: { id:parseInt(id)},data,
 		})
 
 		
@@ -70,19 +66,11 @@ class ExamService {
 	}
 
     async Deleting(id,prisma) {
-		const book = await prisma.exam.findUnique({where:{id}})
-
-		// [ERROR] Exam_NOT_FOUND
-		if (book === null) throw Error('Exam_NOT_FOUND')
-
-		// [ERROR] Exam_DELETED
-		if (book.isDeleted) throw Error('Exam_DELETED')
-
-		
+				
 
 		// deleting exam in Exam
-		await prisma.exam.delete({where: { sId: id}})
+		await prisma.exams.delete({where: { id: parseInt(id) }})
 
 	}
 }
-export default ExamService()
+export default new ExamService()

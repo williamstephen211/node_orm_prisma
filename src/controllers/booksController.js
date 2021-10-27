@@ -1,5 +1,9 @@
-import {booksService} from '../services'
-import { PrismaClient } from '@prisma/client'
+import services from '../services/index.js'
+import prismaClient from '@prisma/client'
+
+const { PrismaClient } = prismaClient
+
+const {booksService} = services
 
 export default class BooksController{
 
@@ -9,13 +13,14 @@ export default class BooksController{
 	 * method: POST
 	 * path: /v2/books	 	 
 	 */ 
-    static create(req, res) {
+    static async create(req, res) {
 
         try {
 
-            const { studentId } = req.body
+            const { studentId,title } = req.body
+            
             const prisma = new PrismaClient()
-            const book = booksService.create(studentId,prisma)
+            const book = await booksService.create(studentId,title,prisma)
             prisma.$disconnect()
 
             // create response
@@ -41,18 +46,19 @@ export default class BooksController{
      
         try{
 
-            const { studentId } = req.query
+            const { title,studentId } = req.query
             // get book list
+            console.log(title,studentId)
             const prisma = new PrismaClient()
-            const books = await booksService.findList({studentId},prisma)
+            const books = await booksService.findList({title,studentId},prisma)
             prisma.$disconnect()
     
             // create response
             const response = {
                 success: true,
                 data: {
-                    total: books.count,
-                    books:books.rows
+                    total: books.length,
+                    books:books
                 }
             }
             res.send(response)
@@ -69,10 +75,11 @@ export default class BooksController{
     static async update(req, res) {
        
         try {
-            const { id, studentId } = req.params
+            const { id } = req.params
+            const { studentId, title} = req.body
             const prisma = new PrismaClient()
             const updateBooks = await booksService.updateById(id,
-                studentId,prisma
+                {studentId,title},prisma
             )
             prisma.$disconnect()
             // create response

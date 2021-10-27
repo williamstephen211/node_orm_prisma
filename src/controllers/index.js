@@ -1,7 +1,6 @@
-
-import studentController from './studentController'
-import booksController from './booksController'
-import examController from './examController'
+import studentController from './studentController.js'
+import booksController from './booksController.js'
+import examController from './examController.js'
 
 const controllers = {
     studentController,

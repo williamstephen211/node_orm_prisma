@@ -1,10 +1,3 @@
-
-
-
-// import models
-import { Books } from '../models'
-
-
 // singleton instance
 let instance = null
 
@@ -17,38 +10,47 @@ class BooksService {
     }
 
     // book create
-    async create(studentId,prisma) {
+    async create(studentId,title,prisma) {
 
-        return await prisma.books.create({data:{sId:studentId}})
+        const info = {sId:parseInt(studentId),title}
+        
+        return await prisma.books.create({data:info})
     }
 
     // book findlist
-    async findList({studentId,orderBy = 'desc',isDeleted = false},prisma) { // keyword -- name
+    async findList({title,studentId,orderBy = 'desc',isDeleted = false},prisma) { // keyword -- name
+        
         // query options 
+        
         let options  = {
-            order: [['id',orderBy]],
+            orderBy: {'id': orderBy},
             where:{
-                isDeleted:isDeleted === 'all' ? undefined : isDeleted,
-                sId: studentId
+                isDeleted: isDeleted === 'all' ? undefined : isDeleted,
+                sId: studentId ? parseInt(studentId) : undefined,
+                title: title ? {contains:title} : undefined
             }
         }
 
         // delete undefined property
-        options.where = JSON.parse(JSON.stringify(options))
+        options.where = JSON.parse(JSON.stringify(options.where))
         
-        return await prisma.books.findAndCountAll(options)
+        return await prisma.books.findMany(options)
     }
 
     async findById(id,prisma) {
-		return await prisma.books.findByPk(id)
+		return await prisma.books.findUnique({where:{id}})
 	}
 
-    async updateById(id, studentId,prisma) {
+    async updateById(id, updateData,prisma) {
 		
 
+        const { studentId, title } = updateData
+        const parseData = {sId: studentId ? parseInt(studentId) : undefined, title: title ? title : undefined }
+        const data = JSON.parse(JSON.stringify(parseData))
+        console.log(data)
 		// update book
 		const updatedBook = await prisma.books.update( {
-			where: { id, isDeleted: false },data:{sId:studentId}
+			where: { id:parseInt(id)},data
 		})
 
 		
@@ -63,18 +65,12 @@ class BooksService {
 	}
 
     async Deleting(id,prisma) {
-		const book = await prisma.books.findUnique({where:{id}})
 
-		// [ERROR] BOOK_NOT_FOUND
-		if (book === null) throw Error('Book_NOT_FOUND')
+		// const book = await prisma.books.findUnique({where:{id}})
 
-		// [ERROR] BOOK_DELETED
-		if (book.isDeleted) throw Error('Book_DELETED')
-
-		
 
 		// deleting book in books
-		await prisma.books.delete({where: { sId: id}})
+		await prisma.books.update({where: { id:parseInt(id) }, data:{isDeleted:true}})
 
 	}
 }

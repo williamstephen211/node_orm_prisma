@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
 }
 
 datasource db {
@@ -8,25 +9,37 @@ datasource db {
 }
 
 model books {
-  id      Int     @id @default(autoincrement())
-  sId     Int
-  student student @relation(fields: [sId], references: [id], map: "Books_sId_fkey")
-  exam    exam?
+  id        Int       @id @default(autoincrement())
+  title     String    @db.VarChar(255)
+  createdAt DateTime  @default(now()) @db.DateTime(0)
+  updatedAt DateTime  @default(now()) @db.DateTime(0)
+  sId       Int?
+  isDeleted Boolean?  @default(false)
+  students  students? @relation(fields: [sId], references: [id], map: "books_ibfk_1")
+  exams     exams[]
 
-  @@index([sId], map: "Books_sId_fkey")
+  @@index([sId], map: "sId")
 }
 
-model exam {
-  id      Int     @id @default(autoincrement())
-  bId     Int     @unique(map: "Exam_bId_key")
-  sId     Int     @unique(map: "Exam_sId_key")
-  books   books   @relation(fields: [bId], references: [id], map: "Exam_bId_fkey")
-  student student @relation(fields: [sId], references: [id], map: "Exam_sId_fkey")
+model exams {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now()) @db.DateTime(0)
+  updatedAt DateTime  @default(now()) @db.DateTime(0)
+  sId       Int?
+  bId       Int?
+  books     books?    @relation(fields: [bId], references: [id], map: "exams_ibfk_54")
+  students  students? @relation(fields: [sId], references: [id], map: "exams_ibfk_31")
+
+  @@index([bId], map: "bId")
+  @@index([sId], map: "sId")
 }
 
-model student {
-  id    Int     @id @default(autoincrement())
-  name  String?
-  books books[]
-  exam  exam?
+model students {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(255)
+  createdAt DateTime @default(now()) @db.DateTime(0)
+  updatedAt DateTime @default(now()) @db.DateTime(0)
+  isDeleted Boolean? @default(false)
+  books     books[]
+  exams     exams[]
 }

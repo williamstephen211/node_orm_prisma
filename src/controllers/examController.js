@@ -1,6 +1,9 @@
-import { examService } from '../services'
-import { PrismaClient } from '@prisma/client'
+import services from '../services/index.js'
+import prismaClient from '@prisma/client'
 
+const { PrismaClient } = prismaClient
+
+const { examService } = services
 export default class ExamController{
 
 
@@ -16,7 +19,7 @@ export default class ExamController{
             const { studentId,bookId } = req.body
             
             const prisma = new PrismaClient()
-            const exam = examService.create({sId:studentId,bId:bookId},prisma)
+            const exam = examService.create({sId:parseInt(studentId),bId:parseInt(bookId)},prisma)
             prisma.$disconnect()
 
 
@@ -43,18 +46,18 @@ export default class ExamController{
      
         try{
 
-            const { studentId,bookId } = req.query
-    
+            const { studentId,bookId } = req.body
+            
             // get exam list
             const prisma = new PrismaClient()
-            const exam = await booksService.findList({studentId,bookId},prisma)
+            const exam = await examService.findList({studentId,bookId},prisma)
             prisma.$disconnect()
             // create response
             const response = {
                 success: true,
                 data: {
-                    total: exam.count,
-                    exam:exam.rows
+                    total: exam.length,
+                    exam:exam
                 }
             }
             res.send(response)
@@ -71,10 +74,12 @@ export default class ExamController{
     static async update(req, res) {
         
         try {
-            const { id, studentId,bookId } = req.params
+            const { id } = req.params
+            const { studentId, bookId } = req.body
+
             const prisma = new PrismaClient()
             const updateBooks = await examService.updateById(id,{
-                sId:studentId,bId:bookId
+                studentId, bookId
             },prisma)
             prisma.$disconnect()
 

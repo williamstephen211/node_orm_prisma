@@ -1,7 +1,8 @@
-import {studentService} from '../services'
-import { PrismaClient } from '@prisma/client'
+import services from '../services/index.js'
+import prismaClient from '@prisma/client'
 
-
+const { PrismaClient } = prismaClient
+const {studentService} = services
 
 export default class StudentController{
 
@@ -40,7 +41,6 @@ export default class StudentController{
 	 */ 
     static async findList(req, res) {
         
-     
         try{
 
             const { name } = req.query
@@ -50,13 +50,14 @@ export default class StudentController{
 
             const students = await studentService.findList({keyword:name},prisma)
             prisma.$disconnect()
+            
     
             // create response
             const response = {
                 success: true,
                 data: {
-                    total: students.count,
-                    students:students.rows
+                    total: students.length,
+                    students:students
                 }
             }
             res.send(response)
@@ -71,15 +72,14 @@ export default class StudentController{
 	 * path: /v2/students/:id	 	 
 	 */ 
     static async update(req, res) {
-        const { language } = req.locale
-
+       
         try {
-            const { id, changeName } = req.params
+            const { id } = req.params
+            const { changeName } = req.body
+
             const prisma = new PrismaClient()
 
-            const updateStudent = await studentService.updateById(id,{
-                name:changeName
-            },prisma)
+            const updateStudent = await studentService.updateById(id, changeName, prisma)
             prisma.$disconnect()
 
             // create response
@@ -121,7 +121,7 @@ export default class StudentController{
 
 			res.send(response)
 		} catch (e) {
-			res.send(createErrorResponse(e, language))
+			res.send(e)
 		}
 	}
 }

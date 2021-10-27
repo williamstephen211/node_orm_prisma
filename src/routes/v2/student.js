@@ -1,8 +1,11 @@
-import { Router } from 'express'
+import * as app from 'express'
 import dotenv from 'dotenv'
 dotenv.config()
 
-import { studentController } from '../../controllers'
+import controllers from '../../controllers/index.js'
+
+const { Router } = app
+const { studentController } = controllers
 
 const router = Router()
 
@@ -26,3 +29,4 @@ router.patch('/:id',(req, res) => {
 router.delete('/:id',(req, res) => {
     studentController.delete(req, res)
 })
+export default router

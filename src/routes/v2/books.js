@@ -1,9 +1,13 @@
-import { Router } from 'express'
+import * as app from 'express'
 import dotenv from 'dotenv'
 dotenv.config()
 
-import { booksController } from '../../controllers'
+import controllers from '../../controllers/index.js'
 
+
+const { Router } = app
+
+const { booksController } = controllers
 const router = Router()
 
 // book creating endpoint
@@ -26,3 +30,4 @@ router.patch('/:id',(req, res) => {
 router.delete('/:id',(req, res) => {
     booksController.delete(req, res)
 })
+export default router
